@@ -83,3 +83,88 @@ export async function perform_rag(query) {
 }
 
 console.log(await perform_rag("How would I initialize a class in python?"))
+
+export async function POST(req) {
+  const openai = new OpenAI({
+    baseURL: "https://openrouter.ai/api/v1",
+    apiKey: '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',
+  });
+  const { messages, language } = await req.json();
+
+  const systemPrompt = generateSystemPrompt(language);
+
+  const updatedMessages = [
+    {role: 'system', content: systemPrompt },
+    ...messages,
+  ];
+
+  //const userMessage = data[data.length - 1].content; //user's last message
+
+  //let messages;
+
+  /*
+  // if message contains the word python, perform rag to ehance the query with retrieved youtube content
+  if (userMessage.toLowerCase().includes("python")) {
+    const raw_query_embedding = await hf_embeddings.embedQuery(userMessage);
+    const top_matches = await pinecone_index.namespace('python-youtube-videos').query({
+      vector: raw_query_embedding,
+      topK: 3,
+      includeMetadata: true,
+      includeValues: true,
+    });
+
+    const contexts = top_matches.matches.map(item => item.metadata.text);
+    const augmented_query = "<CONTEXT>\n" + (contexts.slice(0, 10)).join("\n\n-------\n\n") + "\n-------\n</CONTEXT>\n\n\n\nMY QUESTION:\n" + query;
+
+    const systemPromptRag = `You are a python coding tutor. Answer my basic questions regarding the python language using the resources from the YouTube video provided.`;
+    messages = [
+      {role: 'system', content: systemPromptRag},
+      {role: 'user', content: augmented_query}
+    ];
+  } else 
+  { 
+    // proceed with the original prompt and llm if python is not found
+   // messages = [
+     // {role: 'system', content: systemPrompt},
+    //  ...data
+   // ]
+  //}
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "meta-llama/llama-3.1-8b-instruct:free",
+      messages: updatedMessages,
+      stream: true,
+    })
+
+    const stream = new ReadableStream ({
+      async start(controller) {
+        const encoder = new TextEncoder();
+        try {
+          for await (const chunk of completion) {
+            const content = chunk.choices[0]?.delta?.content;
+            if (content) {
+              const text = encoder.encode(content);
+              controller.enqueue(text);
+            }
+          }
+        } catch (err) {
+          controller.error(err);
+        } finally {
+          controller.close();
+        }
+      }
+    })
+
+    return new NextResponse(stream, {
+      headers: {
+        'Content-Type': 'text/plain',
+      }
+    });
+
+  } catch(err) {
+    console.error('Error in OpenAI API request:', err)
+    return new NextResponse('Error generating message', {status: 500})
+  }
+}*/
+}
